@@ -3,6 +3,8 @@ var builder = require('botbuilder');
 var Conversation = require('watson-developer-cloud/conversation/v1');
 let connect = require('./mongoDb');
 let nodo=require('./nodos');
+var email=require('./sendEmail');
+
 
 require('dotenv').config({silent: true});
 
@@ -70,7 +72,6 @@ var conversationContext = findOrCreateContext(session.message.address.conversati
 if (!conversationContext) conversationContext = {};
 payload.context = conversationContext.watsonContext;
 
-console.log('-------nodo: ',JSON.stringify(conversationContext.watsonContext));
 
 conversation.message(payload, function(err, response) {
 
@@ -132,7 +133,9 @@ conversation.message(payload, function(err, response) {
             \n\n-Ver acuerdos propuestos por el banco.
             \n\n-Indicar una capacidad de pago.
             \n\n-Indicar un número de cuotas.`);
+            session.userData.datosCreditoUsario=result;
         });
+        
 
     }else if(response.output.action==="acuerdoBanco"){
         let infoUsuario=session.userData.datosUsuario;    
@@ -150,12 +153,46 @@ conversation.message(payload, function(err, response) {
                 result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);                
             }
 
-            session.send(`Si aceptas este nuevo acuerdo del banco, pagarías un valor de $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
-            \n\n¿Estas de acuerdo.?`);
+            session.send(`El banco ofrece como alternativa pagar un valor de $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            \n\n¿Estas de acuerdo?`);
+            session.userData.nuevoNroCuotas=result.nro_cuotas;
+            session.userData.nuevoValorCuota=result.valor_cuota;
             response.context.nombreUsuario=infoUsuario.nombres;
-            console.log(JSON.stringify(response.context));
             conversationContext.watsonContext=response.context;    
         });
+    
+    
+    }else if(response.output.action==="acuerdoCapacidadPago"){
+        let capacidadPago=response.context.cuota;
+        console.log(`-----Capacidad pago`,capacidadPago);
+
+
+
+    }else if(response.output.action==="opcionesAcuerdo"){
+        let infoUsuario=session.userData.datosUsuario;    
+        let documento={cliente_id:infoUsuario.cedula};
+        connect.buscarCreditoxCedula(documento,result=>{            
+            session.send(`¿Que opción deseas para renegociar?
+            \n\n-Ver acuerdo propuesto por el banco.
+            \n\n-Indicar una capacidad de pago.
+            \n\n-Indicar un número de cuotas.`);
+        });
+
+    }else if(response.output.action==="correoAcuerdoBanco"){
+           let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
+           \nReciba un coordial saludo,
+           \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
+           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \n\nAtentamente,
+           \nBANWERC\nAsesor virtual.
+           `;         
+           let correo= session.userData.datosUsuario.email;
+          
+           let asunto=`Solicitud acuerdo de pago`;
+           
+           
+           email.enviarEmail(correo,asunto,contenido);
+
     }
     else {
 

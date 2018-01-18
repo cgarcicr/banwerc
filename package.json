@@ -11,8 +11,8 @@
   "dependencies": {
     "botbuilder": "^3.8.4",
     "dotenv": "^2.0.0",
-    "mailgun-js": "^0.14.1",
     "mongodb": "^2.2.33",
+    "nodemailer": "^4.4.1",
     "osa-imessage": "^2.1.1",
     "restify": "^5.0.1",
     "watson-developer-cloud": "^2.31.1"

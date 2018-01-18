@@ -1,30 +1,31 @@
-var key = 'key-88ece16b398a5257e77ad87cc31e6534';
-var dom = 'sandbox5ec5f8c6c8164a83ba17c7d7c3c1b0c8.mailgun.org';
+var nodemailer = require('nodemailer');
+// email sender function
 
-var Mailgun = require('mailgun-js')
+module.exports.enviarEmail=(para,asunto,contenido)=>{
+// Definimos el transporter
 
-module.exports.sendMessage = (para,asunto,texto)=>{
-
-  var mailgun = new Mailgun({apiKey: key, domain: dom});
-
-  var data = {
+    var transporter = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: {
+            user: 'innovacionSophos@gmail.com',
+            pass: 'innovacionSophos2017'
+        }
+    });
+// Definimos el email
+var mailOptions = {
     from: 'innovacionSophos@gmail.com',
     to: para,
     subject: asunto,
-    text: texto
-  };
-
-
-  mailgun.messages().send(data, function (err) {
-
-    if (err) {
-      console.log('Ocurrio un error : ', err);
+    text: contenido
+};
+// Enviamos el email
+transporter.sendMail(mailOptions, function(error, info){
+    if (error){
+        console.log("Se presentó un error: ",error);
+       
+    } else {
+        console.log("Correo Enviado Exitosamente");
+        
     }
-
-    else {console.log('Mensaje enviado');
-    }
-
-  })
-
-
-}
+});
+};
