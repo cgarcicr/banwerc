@@ -1,0 +1,6 @@
+#Dependencias de nodejs
+node_modules/
+.vscode/
+.idea/
+prueba.js
+secrets.js
