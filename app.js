@@ -184,7 +184,33 @@ conversation.message(payload, function(err, response) {
 
 
 
-    }else if(response.output.action==="opcionesAcuerdo"){
+    }else if(response.output.action==="acuerdoCapacidadCuotas"){
+        let nroCuotas=response.context.nroCuotas;
+        let infoUsuario=session.userData.datosUsuario;
+        let documento={cliente_id:infoUsuario.cedula};
+        connect.buscarCreditoxCedula(documento,result=>{
+       
+            if(nroCuotas!=null){
+                result.nro_cuotas=nroCuotas;
+                result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);
+
+            }
+
+            session.send(`Según su capacidad de pago pagaría un valor $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            \n\n¿Estas de acuerdo?`);
+            session.userData.nuevoNroCuotas=result.nro_cuotas;
+            session.userData.nuevoValorCuota=result.valor_cuota;
+            response.context.nombreUsuario=infoUsuario.nombres;
+            conversationContext.watsonContext=response.context;    
+        }); 
+
+
+
+    }
+    
+    
+    
+    else if(response.output.action==="opcionesAcuerdo"){
         let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
@@ -232,15 +258,10 @@ conversation.message(payload, function(err, response) {
              let asunto = "Información de saldo y estado de la cuenta";
 
              email.enviarEmail(correo,asunto,contenido);
-
-
-
            });
-        }
-
-
-
-    else {
+        }else if(response.output.action==="mostrar_hora"){
+            session.send(`Son las: ${new Date().toLocaleTimeString()} horas en Colombia.`);
+        }else {
 
         // Mostrar la salida del diálogo, si la hay.
         if (response.output.text.length != 0) {
