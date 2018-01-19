@@ -163,8 +163,24 @@ conversation.message(payload, function(err, response) {
     
     
     }else if(response.output.action==="acuerdoCapacidadPago"){
-        let capacidadPago=response.context.cuota;
-        console.log(`-----Capacidad pago`,capacidadPago);
+        let capacidadPago=response.context.capacidadPago;
+        let infoUsuario=session.userData.datosUsuario;
+        let documento={cliente_id:infoUsuario.cedula};
+        connect.buscarCreditoxCedula(documento,result=>{
+       
+            if(capacidadPago!=null){
+                result.valor_cuota=capacidadPago;
+                result.nro_cuotas=Math.round(result.valor_deuda/result.valor_cuota);
+
+            }
+
+            session.send(`Según su capacidad de pago pagaría un valor $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            \n\n¿Estas de acuerdo?`);
+            session.userData.nuevoNroCuotas=result.nro_cuotas;
+            session.userData.nuevoValorCuota=result.valor_cuota;
+            response.context.nombreUsuario=infoUsuario.nombres;
+            conversationContext.watsonContext=response.context;    
+        });
 
 
 
@@ -174,8 +190,8 @@ conversation.message(payload, function(err, response) {
         connect.buscarCreditoxCedula(documento,result=>{            
             session.send(`¿Que opción deseas para renegociar?
             \n\n-Ver acuerdo propuesto por el banco.
-            \n\n-Indicar una capacidad de pago.
-            \n\n-Indicar un número de cuotas.`);
+            \n\n-Por capacidad de pago.
+            \n\n-Por número de cuotas.`);
         });
 
     }else if(response.output.action==="correoAcuerdoBanco"){
