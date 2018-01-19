@@ -189,7 +189,7 @@ conversation.message(payload, function(err, response) {
         let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
-       
+
             if(nroCuotas!=null){
                 result.nro_cuotas=nroCuotas;
                 result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);
@@ -201,15 +201,15 @@ conversation.message(payload, function(err, response) {
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
             response.context.nombreUsuario=infoUsuario.nombres;
-            conversationContext.watsonContext=response.context;    
-        }); 
+            conversationContext.watsonContext=response.context;
+        });
 
 
 
     }
-    
-    
-    
+
+
+
     else if(response.output.action==="opcionesAcuerdo"){
         let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
@@ -259,7 +259,45 @@ conversation.message(payload, function(err, response) {
 
              email.enviarEmail(correo,asunto,contenido);
            });
-        }else if(response.output.action==="mostrar_hora"){
+        }
+
+    //Envio de correo si la opcion seleccionada es por capacidad de pago
+        else if(response.output.action == "correoCapacidadPago"){
+
+           let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
+           \nReciba un coordial saludo,
+           \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
+           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \n\nAtentamente,
+           \nBANWERC\nAsesor virtual.
+           `;
+           let correo= session.userData.datosUsuario.email;
+           let asunto=`Solicitud acuerdo de pago`;
+
+           //Enviar correo
+           email.enviarEmail(correo,asunto,contenido);
+      }
+
+    //Envio de correo si la opcion seleccionada es por numero de cuotas
+      else if(response.output.action == "correoNroCuotas"){
+
+           let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
+           \nReciba un coordial saludo,
+           \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
+           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \n\nAtentamente,
+           \nBANWERC\nAsesor virtual.
+           `;
+          let correo= session.userData.datosUsuario.email;
+          let asunto=`Solicitud acuerdo de pago`;
+
+      //Enviar correo
+      email.enviarEmail(correo,asunto,contenido);
+
+
+ }
+
+        else if(response.output.action==="mostrar_hora"){
             session.send(`Son las: ${new Date().toLocaleTimeString()} horas en Colombia.`);
         }else {
 
