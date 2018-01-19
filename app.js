@@ -167,7 +167,7 @@ conversation.message(payload, function(err, response) {
         let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
-       
+
             if(capacidadPago!=null){
                 result.valor_cuota=capacidadPago;
                 result.nro_cuotas=Math.round(result.valor_deuda/result.valor_cuota);
@@ -179,7 +179,7 @@ conversation.message(payload, function(err, response) {
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
             response.context.nombreUsuario=infoUsuario.nombres;
-            conversationContext.watsonContext=response.context;    
+            conversationContext.watsonContext=response.context;
         });
 
 
@@ -222,7 +222,7 @@ conversation.message(payload, function(err, response) {
              let contenido = `Sr(a) ${session.userData.datosUsuario.nombres}.
              \nReciba un cordial saludo,
              \nSegún la consulta realizada en nuestro portal referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta},\nrelaciono detalles de tu saldo actual y el estado del crédito :
-             \nTipo de crédito : ${session.userData.datosCreditoUsario.tipo_credito}.\nCupo inicial : $${session.userData.datosCreditoUsario.cupo_total}.\nSaldo pendiente : $${session.userData.datosCreditoUsario.valor_deuda}.\nNúmero de cuotas : ${session.userData.datosCreditoUsario.nro_cuotas}.\nValor de la cuota : $${session.userData.datosCreditoUsario.valor_cuota}.\nCrédito en mora : ${(session.userData.datosCreditoUsario.mora=='y')?'Si':'No'}.
+             \nTipo de crédito : ${session.userData.datosCreditoUsario.tipo_credito}.\nCupo inicial : $${session.userData.datosCreditoUsario.cupo_total}.\nSaldo pendiente : $${session.userData.datosCreditoUsario.valor_deuda}.\nNúmero de cuotas : ${session.userData.datosCreditoUsario.nro_cuotas}.\nValor de la cuota : $${session.userData.datosCreditoUsario.valor_cuota}.\nTasa Efectiva anual : ${session.userData.datosCreditoUsario.tasa}\nCrédito en mora : ${(session.userData.datosCreditoUsario.mora=='y')?'Si':'No'}.
              \nRecuerda que puedes consultar tu información en cualquier momento y visitar las opciones que tenemos disponibles para ti.
              \n\nAtentamente,
              \nBANWER\nAsesor virtual.
