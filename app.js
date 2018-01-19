@@ -47,7 +47,7 @@ function findOrCreateContext (convId){
     // Let's see if we already have a session for the user convId
   if (!contexts)
       contexts = [];
-          
+
   if (!contexts[convId]) {
       // No session found for user convId, let's create a new one
       //with Michelin concervsation workspace by default
@@ -82,22 +82,22 @@ conversation.message(payload, function(err, response) {
     conversationContext.watsonContext = response.context;
 
     if (response.output.action === "buscarCedula") {
-        let documento={cedula:response.context.nroCedula};        
+        let documento={cedula:response.context.nroCedula};
         connect.buscarxCedula(documento,result=>{
                 session.userData.datosUsuario=result;
-                
+
                 if(result.length===0){
                     session.send("El número de documento que me indicó no aparece en el sistema, verifica e ingresa de nuevo.");
                     conversationContext.watsonContext=nodo.nodo_credito;
                 }else{
                     //session.send(`Correcto Sr(a) ${session.userData.datosUsuario.nombres}. \n\nEstas son las opciones disponibles de tu crédito.\n\n-Consultar saldo.\n\n-Solicitar Renegociación.\n\n¿Que opción deseas.?`);
-                    //conversationContext.watsonContext=nodo.nodo_saldo;   
+                    //conversationContext.watsonContext=nodo.nodo_saldo;
                     let opcion1='\n\n-Solicitar saldo.';
                     let opcion2='\n\n-Solicitar renegociación.';
                     session.send(`Correcto sr(a) ${session.userData.datosUsuario.nombres}, estas son las opciones disponibles para tu crédito:%s%s\n\n¿Cuál deseas?.`,opcion1,opcion2);
                     conversationContext.watsonContext=response.context;
 
-                }           
+                }
 
         });
     }else if(response.output.action==="solicitarSaldo"){
@@ -115,10 +115,10 @@ conversation.message(payload, function(err, response) {
             \n\n¿Desea ver la opciones de renegociación?`,
             infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,result.cupo_total,result.valor_deuda,result.nro_cuotas,result.valor_cuota,(result.mora)=='y'?'Si':'No');
         }
-        ); 
+        );
 
     }else if(response.output.action==="solicitarRenegociacion"){
-        let infoUsuario=session.userData.datosUsuario;    
+        let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
             session.send(`Sr(a) %s La información para el número de credito %s es:
@@ -135,10 +135,10 @@ conversation.message(payload, function(err, response) {
             \n\n-Indicar un número de cuotas.`);
             session.userData.datosCreditoUsario=result;
         });
-        
+
 
     }else if(response.output.action==="acuerdoBanco"){
-        let infoUsuario=session.userData.datosUsuario;    
+        let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
             /*result.nro_cuenta
@@ -150,7 +150,7 @@ conversation.message(payload, function(err, response) {
 
             if(result.nro_cuotas<=36){
                 result.nro_cuotas=48;
-                result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);                
+                result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);
             }
 
             session.send(`El banco ofrece como alternativa pagar un valor de $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
@@ -158,10 +158,10 @@ conversation.message(payload, function(err, response) {
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
             response.context.nombreUsuario=infoUsuario.nombres;
-            conversationContext.watsonContext=response.context;    
+            conversationContext.watsonContext=response.context;
         });
-    
-    
+
+
     }else if(response.output.action==="acuerdoCapacidadPago"){
         let capacidadPago=response.context.cuota;
         console.log(`-----Capacidad pago`,capacidadPago);
@@ -169,9 +169,9 @@ conversation.message(payload, function(err, response) {
 
 
     }else if(response.output.action==="opcionesAcuerdo"){
-        let infoUsuario=session.userData.datosUsuario;    
+        let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
-        connect.buscarCreditoxCedula(documento,result=>{            
+        connect.buscarCreditoxCedula(documento,result=>{
             session.send(`¿Que opción deseas para renegociar?
             \n\n-Ver acuerdo propuesto por el banco.
             \n\n-Indicar una capacidad de pago.
@@ -185,15 +185,45 @@ conversation.message(payload, function(err, response) {
            \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
            \nBANWERC\nAsesor virtual.
-           `;         
+           `;
            let correo= session.userData.datosUsuario.email;
-          
+
            let asunto=`Solicitud acuerdo de pago`;
-           
-           
+
+
            email.enviarEmail(correo,asunto,contenido);
 
+
     }
+    //Envio de correo al terminar la consulta del saldo
+    else if(response.output.action=="correoInfoSaldo"){
+
+           let documento = {cliente_id:session.userData.datosUsuario.cedula}
+
+           connect.buscarCreditoxCedula(documento,result=>{
+             session.userData.datosCreditoUsario=result;
+
+             let contenido = `Sr(a) ${session.userData.datosUsuario.nombres}.
+             \nReciba un cordial saludo,
+             \nSegún la consulta realizada en nuestro portal referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta},\nrelaciono detalles de tu saldo actual y el estado del crédito :
+             \nTipo de crédito : ${session.userData.datosCreditoUsario.tipo_credito}.\nCupo inicial : $${session.userData.datosCreditoUsario.cupo_total}.\nSaldo pendiente : $${session.userData.datosCreditoUsario.valor_deuda}.\nNúmero de cuotas : ${session.userData.datosCreditoUsario.nro_cuotas}.\nValor de la cuota : $${session.userData.datosCreditoUsario.valor_cuota}.\nCrédito en mora : ${(session.userData.datosCreditoUsario.mora=='y')?'Si':'No'}.
+             \nRecuerda que puedes consultar tu información en cualquier momento y visitar las opciones que tenemos disponibles para ti.
+             \n\nAtentamente,
+             \nBANWER\nAsesor virtual.
+             `;
+
+             let correo= session.userData.datosUsuario.email;
+             let asunto = "Información de saldo y estado de la cuenta";
+
+             email.enviarEmail(correo,asunto,contenido);
+
+
+
+           });
+        }
+
+
+
     else {
 
         // Mostrar la salida del diálogo, si la hay.
@@ -202,7 +232,7 @@ conversation.message(payload, function(err, response) {
         }
 
     }
-     
+
 
   }
  });
