@@ -4,7 +4,7 @@ var Conversation = require('watson-developer-cloud/conversation/v1');
 let connect = require('./mongoDb');
 let nodo=require('./nodos');
 var email=require('./sendEmail');
-
+let moneda=require('./cambioMoneda');
 
 require('dotenv').config({silent: true});
 
@@ -106,14 +106,14 @@ conversation.message(payload, function(err, response) {
             connect.buscarCreditoxCedula(documento,result=>{
             session.send(`Sr(a) %s La información para el número de credito %s es:
             \n\nTipo de crédito: %s
-            \n\nCupo inicial: $%s
-            \n\nSaldo pendiente: $%s
+            \n\nCupo inicial: %s
+            \n\nSaldo pendiente: %s
             \n\nNúmero de cuotas: %s
-            \n\nValor de la cuota: $%s
+            \n\nValor de la cuota: %s
             \n\nCrédito en mora: %s
             \n\n Esta información será enviada a su correo electrónico.
             \n\n¿Desea ver las opciones de renegociación?`,
-            infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,result.cupo_total,result.valor_deuda,result.nro_cuotas,result.valor_cuota,(result.mora)=='y'?'Si':'No');
+            infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,moneda.cambioMoneda(result.cupo_total),moneda.cambioMoneda(result.valor_deuda),result.nro_cuotas,moneda.cambioMoneda(result.valor_cuota),(result.mora)=='y'?'Si':'No');
         }
         );
 
@@ -123,12 +123,12 @@ conversation.message(payload, function(err, response) {
         connect.buscarCreditoxCedula(documento,result=>{
             session.send(`Sr(a) %s La información para el número de credito %s es:
             \n\nTipo de crédito: %s
-            \n\nCupo inicial: $%s
-            \n\nSaldo pendiente: $%s
+            \n\nCupo inicial: %s
+            \n\nSaldo pendiente: %s
             \n\nNúmero de cuotas: %s
-            \n\nValor de la cuota: $%s
+            \n\nValor de la cuota: %s
             \n\nCrédito en mora: %s`,
-            infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,result.cupo_total,result.valor_deuda,result.nro_cuotas,result.valor_cuota,(result.mora)=='y'?'Si':'No');
+            infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,moneda.cambioMoneda(result.cupo_total),moneda.cambioMoneda(result.valor_deuda),result.nro_cuotas,moneda.cambioMoneda(result.valor_cuota),(result.mora)=='y'?'Si':'No');
             session.send(`¿Que opción deseas para renegociar?
             \n\n-Ver acuerdos propuestos por el banco.
             \n\n-Indicar una capacidad de pago.
@@ -147,7 +147,7 @@ conversation.message(payload, function(err, response) {
                 result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);
             }
 
-            session.send(`El banco ofrece como alternativa pagar un valor de $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            session.send(`El banco ofrece como alternativa pagar un valor de ${moneda.cambioMoneda(result.valor_cuota)} por ${result.nro_cuotas} cuotas.
             \n\n¿Estas de acuerdo?`);
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
@@ -168,7 +168,7 @@ conversation.message(payload, function(err, response) {
 
             }
 
-            session.send(`Según su capacidad de pago pagaría un valor $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            session.send(`Según su capacidad de pago pagaría un valor ${moneda.cambioMoneda(result.valor_cuota)} por ${result.nro_cuotas} cuotas.
             \n\n¿Estas de acuerdo?`);
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
@@ -190,7 +190,7 @@ conversation.message(payload, function(err, response) {
 
             }
 
-            session.send(`Según su capacidad de pago pagaría un valor $${result.valor_cuota} por ${result.nro_cuotas} cuotas.
+            session.send(`Según su capacidad de pago pagaría un valor ${moneda.cambioMoneda(result.valor_cuota)} por ${result.nro_cuotas} cuotas.
             \n\n¿Estas de acuerdo?`);
             session.userData.nuevoNroCuotas=result.nro_cuotas;
             session.userData.nuevoValorCuota=result.valor_cuota;
@@ -216,9 +216,9 @@ conversation.message(payload, function(err, response) {
 
     }else if(response.output.action==="correoAcuerdoBanco"){
            let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
-           \nReciba un coordial saludo,
+           \nReciba un cordial saludo,
            \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
-           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \nValor de la cuota: ${moneda.cambioMoneda(session.userData.nuevoValorCuota)}\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
            \nBANWERC\nAsesor virtual.
            `;
@@ -242,7 +242,7 @@ conversation.message(payload, function(err, response) {
              let contenido = `Sr(a) ${session.userData.datosUsuario.nombres}.
              \nReciba un cordial saludo,
              \nSegún la consulta realizada en nuestro portal referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta},\nrelaciono detalles de tu saldo actual y el estado del crédito :
-             \nTipo de crédito : ${session.userData.datosCreditoUsario.tipo_credito}.\nCupo inicial : $${session.userData.datosCreditoUsario.cupo_total}.\nSaldo pendiente : $${session.userData.datosCreditoUsario.valor_deuda}.\nNúmero de cuotas : ${session.userData.datosCreditoUsario.nro_cuotas}.\nValor de la cuota : $${session.userData.datosCreditoUsario.valor_cuota}.\nTasa Efectiva anual : ${session.userData.datosCreditoUsario.tasa}\nCrédito en mora : ${(session.userData.datosCreditoUsario.mora=='y')?'Si':'No'}.
+             \nTipo de crédito : ${session.userData.datosCreditoUsario.tipo_credito}.\nCupo inicial : ${moneda.cambioMoneda(session.userData.datosCreditoUsario.cupo_total)}\nSaldo pendiente : ${moneda.cambioMoneda(session.userData.datosCreditoUsario.valor_deuda)}\nNúmero de cuotas : ${session.userData.datosCreditoUsario.nro_cuotas}.\nValor de la cuota : ${moneda.cambioMoneda(session.userData.datosCreditoUsario.valor_cuota)}\nTasa Efectiva anual : ${session.userData.datosCreditoUsario.tasa}\nCrédito en mora : ${(session.userData.datosCreditoUsario.mora=='y')?'Si':'No'}.
              \nRecuerda que puedes consultar tu información en cualquier momento y visitar las opciones que tenemos disponibles para ti.
              \n\nAtentamente,
              \nBANWER\nAsesor virtual.
@@ -261,7 +261,7 @@ conversation.message(payload, function(err, response) {
            let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
            \nReciba un cordial saludo,
            \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
-           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \nValor de la cuota: ${moneda.cambioMoneda(session.userData.nuevoValorCuota)}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
            \nBANWERC\nAsesor virtual.
            `;
@@ -278,7 +278,7 @@ conversation.message(payload, function(err, response) {
            let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
            \nReciba un cordial saludo,
            \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
-           \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
+           \nValor de la cuota: ${moneda.cambioMoneda(session.userData.nuevoValorCuota)}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
            \nBANWERC\nAsesor virtual.
            `;
