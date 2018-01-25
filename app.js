@@ -112,7 +112,7 @@ conversation.message(payload, function(err, response) {
             \n\nValor de la cuota: $%s
             \n\nCrédito en mora: %s
             \n\n Esta información será enviada a su correo electrónico.
-            \n\n¿Desea ver la opciones de renegociación?`,
+            \n\n¿Desea ver las opciones de renegociación?`,
             infoUsuario.nombres,result.nro_cuenta,result.tipo_credito,result.cupo_total,result.valor_deuda,result.nro_cuotas,result.valor_cuota,(result.mora)=='y'?'Si':'No');
         }
         );
@@ -141,13 +141,7 @@ conversation.message(payload, function(err, response) {
         let infoUsuario=session.userData.datosUsuario;
         let documento={cliente_id:infoUsuario.cedula};
         connect.buscarCreditoxCedula(documento,result=>{
-            /*result.nro_cuenta
-            result.tipo_credito
-            result.cupo_total
-            result.valor_deuda
-            result.nro_cuotas
-            result.valor_cuota*/
-
+         
             if(result.nro_cuotas<=36){
                 result.nro_cuotas=48;
                 result.valor_cuota=Math.round(result.valor_deuda/result.nro_cuotas);
