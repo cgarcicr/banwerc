@@ -259,7 +259,7 @@ conversation.message(payload, function(err, response) {
         else if(response.output.action == "correoCapacidadPago"){
 
            let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
-           \nReciba un coordial saludo,
+           \nReciba un cordial saludo,
            \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
            \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
@@ -276,7 +276,7 @@ conversation.message(payload, function(err, response) {
       else if(response.output.action == "correoNroCuotas"){
 
            let contenido=`Sr(a) ${session.userData.datosUsuario.nombres}.
-           \nReciba un coordial saludo,
+           \nReciba un cordial saludo,
            \nPara mí fue un placer haber atendido su requerimiento, referente al número de crédito ${session.userData.datosCreditoUsario.nro_cuenta}.\nSegún la conversación previa se llegó a un nuevo acuerdo de pago con las siguientes condiciones:
            \nValor de la cuota: $${session.userData.nuevoValorCuota}.\nNúmero de cuotas: ${session.userData.nuevoNroCuotas}.\n\nEsta información será previamente analizada por uno de nuestros asesores que se contactará con usted para oficializar el nuevo acuerdo.
            \n\nAtentamente,
